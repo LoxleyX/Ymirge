@@ -258,9 +258,25 @@ void UIManagerImGui::renderControlPanel() {
     // Resolution
     if (ImGui::CollapsingHeader("Resolution")) {
         const char* resNames[] = {"Preview (128)", "Standard (512)", "High (1024)", "Export (2048)", "Ultra (4096)"};
-        int currentRes = (int)targetResolution_;
-        if (ImGui::Combo("Target", &currentRes, resNames, 5)) {
-            targetResolution_ = (Resolution)currentRes;
+
+        // Convert enum to combo index
+        int currentResIndex = 0;
+        if (targetResolution_ == Resolution::PREVIEW) currentResIndex = 0;
+        else if (targetResolution_ == Resolution::STANDARD) currentResIndex = 1;
+        else if (targetResolution_ == Resolution::HIGH) currentResIndex = 2;
+        else if (targetResolution_ == Resolution::EXPORT) currentResIndex = 3;
+        else if (targetResolution_ == Resolution::ULTRA) currentResIndex = 4;
+
+        if (ImGui::Combo("Target", &currentResIndex, resNames, 5)) {
+            // Convert combo index to enum
+            const Resolution resolutions[] = {
+                Resolution::PREVIEW,
+                Resolution::STANDARD,
+                Resolution::HIGH,
+                Resolution::EXPORT,
+                Resolution::ULTRA
+            };
+            targetResolution_ = resolutions[currentResIndex];
             resolutionChanged_ = true;
         }
     }

@@ -333,10 +333,6 @@ public:
         // Initialize GPU Compute
         GPUCompute::initialize();
 
-        // Run GPU tests and benchmarks
-        runGPUTests();
-        runGPUBenchmarks();
-
         // Initialize ImGui
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
