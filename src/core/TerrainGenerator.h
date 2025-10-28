@@ -45,6 +45,7 @@ private:
     void applyTerracing(const TerrainParams& params);
     void applyEdgePadding(const TerrainParams& params);
     void flattenLowAreas(const TerrainParams& params);
+    void softenTerrain(const TerrainParams& params);
     void connectValleys(const TerrainParams& params);
     void applyRivers(const TerrainParams& params);
 

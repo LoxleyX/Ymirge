@@ -56,6 +56,8 @@ public:
     bool hasResolutionChanged() const { return resolutionChanged_; }
     void clearResolutionChanged() { resolutionChanged_ = false; }
 
+    bool isRealTimePreviewEnabled() const { return enableRealTimePreview_; }
+
     ExportFormat getExportFormat() const { return exportFormat_; }
 
     BrushType getActiveTool() const { return activeTool_; }
@@ -132,6 +134,7 @@ private:
 
     Resolution targetResolution_;
     bool resolutionChanged_;
+    bool enableRealTimePreview_;
 
     ExportFormat exportFormat_;
 

@@ -287,6 +287,7 @@ set(YMIRGE_ALGORITHM_SOURCES
     src/algorithms/EdgeSmoothing.cpp
     src/algorithms/Peaks.cpp
     src/algorithms/Rivers.cpp
+    src/algorithms/TerrainSoftening.cpp
     src/algorithms/ValleyConnectivity.cpp
     src/algorithms/ThermalErosion.cpp
     src/algorithms/HydraulicErosion.cpp
@@ -298,6 +299,7 @@ set(YMIRGE_ALGORITHM_HEADERS
     src/algorithms/EdgeSmoothing.h
     src/algorithms/Peaks.h
     src/algorithms/Rivers.h
+    src/algorithms/TerrainSoftening.h
     src/algorithms/ValleyConnectivity.h
     src/algorithms/ThermalErosion.h
     src/algorithms/HydraulicErosion.h

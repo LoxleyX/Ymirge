@@ -16,6 +16,7 @@ UIManagerImGui::UIManagerImGui()
     , saveProjectRequested_(false)
     , targetResolution_(Resolution::STANDARD)
     , resolutionChanged_(false)
+    , enableRealTimePreview_(true)
     , exportFormat_(ExportFormat::PNG16)
     , activeTool_(BrushType::VIEW)
     , brushSize_(10)
@@ -255,6 +256,19 @@ void UIManagerImGui::renderControlPanel() {
         }
     }
 
+    // Real-Time Preview
+    if (ImGui::CollapsingHeader("Real-Time Preview", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::Checkbox("Enable Real-Time Preview", &enableRealTimePreview_);
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Update terrain while dragging sliders (512x512).\n"
+                             "Disable for faster slider adjustment without regenerating.\n"
+                             "When disabled, use the Generate button to update terrain.");
+        }
+
+        ImGui::Spacing();
+        ImGui::TextWrapped("Real-time preview regenerates terrain at 512x512 resolution as you adjust sliders (~150-300ms per update).");
+    }
+
     // Resolution
     if (ImGui::CollapsingHeader("Resolution")) {
         const char* resNames[] = {"Preview (128)", "Standard (512)", "High (1024)", "Export (2048)", "Ultra (4096)"};
@@ -299,14 +313,6 @@ void UIManagerImGui::renderControlPanel() {
             paramsChanged_ = true;
             selectedPreset_ = -1;
         }
-        if (ImGui::SliderFloat("Flatten Valleys", &params_.flattenValleys, 0.0f, 1.0f)) {
-            paramsChanged_ = true;
-            selectedPreset_ = -1;
-        }
-        if (ImGui::SliderFloat("Valley Connectivity", &params_.valleyConnectivity, 0.0f, 1.0f)) {
-            paramsChanged_ = true;
-            selectedPreset_ = -1;
-        }
         if (ImGui::SliderFloat("Peaks", &params_.peaks, 0.0f, 1.0f)) {
             paramsChanged_ = true;
             selectedPreset_ = -1;
@@ -326,6 +332,22 @@ void UIManagerImGui::renderControlPanel() {
         if (ImGui::SliderFloat("Erosion", &params_.erosion, 0.0f, 1.0f)) {
             paramsChanged_ = true;
             selectedPreset_ = -1;
+        }
+        if (ImGui::SliderFloat("Terrain Smoothness", &params_.terrainSmoothness, 0.0f, 1.0f)) {
+            paramsChanged_ = true;
+            selectedPreset_ = -1;
+        }
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Reduces slopes in low/mid elevations while preserving peaks.\nCreates gentle, buildable terrain surrounded by dramatic mountains.");
+        }
+        if (params_.terrainSmoothness > 0.01f) {
+            if (ImGui::SliderFloat("Softening Threshold", &params_.softeningThreshold, 0.3f, 0.9f)) {
+                paramsChanged_ = true;
+                selectedPreset_ = -1;
+            }
+            if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Elevation below which terrain gets smoothed.\n0.5 = bottom 50%, 0.7 = bottom 70%\nHigher values preserve more peaks.");
+            }
         }
         if (ImGui::SliderFloat("Edge Padding", &params_.edgePadding, 0.0f, 0.5f)) {
             paramsChanged_ = true;

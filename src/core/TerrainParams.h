@@ -40,6 +40,10 @@ struct TerrainParams {
     float edgePadding = 0.15f;
     float islandShape = 1.5f;
 
+    // Terrain Softening (Phase 3)
+    float terrainSmoothness = 0.0f;      // 0.0-1.0, how much to smooth slopes
+    float softeningThreshold = 0.65f;    // 0.0-1.0, elevation below which to smooth
+
     // Thermal Erosion (Phase 2.2)
     bool thermalErosionEnabled = false;
     float thermalTalusAngle = 0.7f;     // Radians (~40 degrees)
@@ -84,7 +88,9 @@ struct TerrainParams {
                islandShape == other.islandShape &&
                islandDensity == other.islandDensity &&
                islandSize == other.islandSize &&
-               seaLevel == other.seaLevel;
+               seaLevel == other.seaLevel &&
+               terrainSmoothness == other.terrainSmoothness &&
+               softeningThreshold == other.softeningThreshold;
     }
 
     bool operator!=(const TerrainParams& other) const {

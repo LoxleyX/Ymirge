@@ -4,6 +4,7 @@
 #include "../algorithms/Peaks.h"
 #include "../algorithms/Rivers.h"
 #include "../algorithms/ValleyConnectivity.h"
+#include "../algorithms/TerrainSoftening.h"
 #include "../algorithms/ThermalErosion.h"
 #include "../algorithms/HydraulicErosion.h"
 #include "../algorithms/RiverEnhancements.h"
@@ -75,22 +76,14 @@ void TerrainGenerator::generate(const TerrainParams& params) {
         applyTerracing(params);
     }
 
-    // Apply edge padding
     if (params.edgePadding > 0.01f) {
         applyEdgePadding(params);
     }
 
-    // Apply valley flattening
-    if (params.flattenValleys > 0.01f) {
-        flattenLowAreas(params);
+    if (params.terrainSmoothness > 0.01f) {
+        softenTerrain(params);
     }
 
-    // Connect valleys
-    if (params.valleyConnectivity > 0.01f && params.flattenValleys > 0.01f) {
-        connectValleys(params);
-    }
-
-    // Apply rivers
     if (params.riverIntensity > 0.01f) {
         applyRivers(params);
     }
@@ -250,6 +243,12 @@ void TerrainGenerator::applyEdgePadding(const TerrainParams& params) {
 void TerrainGenerator::flattenLowAreas(const TerrainParams& params) {
     std::lock_guard<std::mutex> lock(heightMapMutex_);
     ValleyFlattening::execute(heightMap_, params.flattenValleys, threadPool_);
+}
+
+void TerrainGenerator::softenTerrain(const TerrainParams& params) {
+    std::lock_guard<std::mutex> lock(heightMapMutex_);
+    TerrainSoftening::execute(heightMap_, params.terrainSmoothness,
+                              params.softeningThreshold, 8, 3, threadPool_);
 }
 
 void TerrainGenerator::connectValleys(const TerrainParams& params) {

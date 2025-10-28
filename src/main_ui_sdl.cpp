@@ -496,23 +496,6 @@ private:
             uiManager_->clearResolutionChanged();
         }
 
-        // Check if parameters changed
-        if (uiManager_->hasParamsChanged()) {
-            TerrainParams params = uiManager_->getParams();
-
-            // Notify resolution manager of interaction
-            resolutionManager_->onUserInteraction();
-
-            // Generate at target resolution
-            Resolution targetRes = uiManager_->getTargetResolution();
-            resolutionManager_->generateAt(targetRes, params);
-
-            // Update sea level immediately
-            renderer_->setSeaLevel(params.seaLevel);
-
-            uiManager_->clearParamsChanged();
-        }
-
         // Handle generate button
         if (uiManager_->isGenerateRequested()) {
             Resolution targetRes = uiManager_->getTargetResolution();
@@ -837,6 +820,23 @@ private:
 
         // Render UI and get viewport rect
         ImVec4 viewportRect = uiManager_->render();
+
+        // Check if parameters changed (must be after render to catch slider changes)
+        if (uiManager_->hasParamsChanged()) {
+            TerrainParams params = uiManager_->getParams();
+
+            // Only generate in real-time if enabled
+            if (uiManager_->isRealTimePreviewEnabled()) {
+                // Generate at STANDARD (512x512) for meaningful real-time preview
+                // Takes ~150-300ms which provides good feedback while dragging sliders
+                resolutionManager_->generateAt(Resolution::STANDARD, params);
+            }
+
+            // Update sea level immediately (always, even if not generating)
+            renderer_->setSeaLevel(params.seaLevel);
+
+            uiManager_->clearParamsChanged();
+        }
 
         // Render ImGui
         ImGui::Render();
