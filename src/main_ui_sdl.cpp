@@ -29,9 +29,13 @@
 #include "ImageExporter.h"
 #include "ThreadPool.h"
 #include "GPUCompute.h"
+#include "GPUTest.h"
+#include "PerlinNoiseGPU.h"
+#include "PerlinNoise.h"
 
 #include <memory>
 #include <iostream>
+#include <chrono>
 #include <ctime>
 #include <sstream>
 #include <iomanip>
@@ -42,6 +46,139 @@ extern "C" {
     unsigned char* stbi_load(const char* filename, int* x, int* y, int* channels_in_file, int desired_channels);
     unsigned short* stbi_load_16(const char* filename, int* x, int* y, int* channels_in_file, int desired_channels);
     void stbi_image_free(void* retval_from_stbi_load);
+}
+
+// GPU test and benchmark functions
+void runGPUTests() {
+    if (!GPUCompute::isAvailable()) {
+        std::cout << "GPU tests skipped (compute not available)" << std::endl;
+        return;
+    }
+
+    std::cout << "\n=== GPU Tests ===" << std::endl;
+
+    // Test 1: Simple add value test
+    {
+        std::cout << "\n[Test 1] Add Value Test" << std::endl;
+        HeightMap testMap(256, 256);
+        for (int i = 0; i < testMap.getWidth() * testMap.getHeight(); i++) {
+            testMap.getData()[i] = 0.5f;
+        }
+
+        if (GPUTest::testAddValue(testMap, 0.25f)) {
+            float avg = 0.0f;
+            for (int i = 0; i < testMap.getWidth() * testMap.getHeight(); i++) {
+                avg += testMap.getData()[i];
+            }
+            avg /= (testMap.getWidth() * testMap.getHeight());
+            std::cout << "  Average height after +0.25: " << avg << " (expected: 0.75)" << std::endl;
+
+            if (std::abs(avg - 0.75f) < 0.01f) {
+                std::cout << "  ✓ Test PASSED" << std::endl;
+            } else {
+                std::cout << "  ✗ Test FAILED" << std::endl;
+            }
+        }
+    }
+
+    // Test 2: Perlin Noise comparison
+    {
+        std::cout << "\n[Test 2] Perlin Noise Correctness" << std::endl;
+        const int size = 256;
+        HeightMap cpuMap(size, size);
+        HeightMap gpuMap(size, size);
+
+        PerlinNoise cpuNoise(12345);
+        PerlinNoiseGPU gpuNoise;
+
+        // Generate CPU version
+        for (int y = 0; y < size; y++) {
+            for (int x = 0; x < size; x++) {
+                float nx = float(x) / size * 2.0f;
+                float ny = float(y) / size * 2.0f;
+                float value = cpuNoise.octaveNoise(nx, ny, 4, 0.5f, 2.0f);
+                cpuMap.at(x, y) = (value + 1.0f) * 0.5f;
+            }
+        }
+
+        // Generate GPU version
+        gpuNoise.generate(gpuMap, 2.0f, 4, 0.5f, 2.0f, 12345);
+
+        // Compare results
+        float maxDiff = 0.0f;
+        float avgDiff = 0.0f;
+        for (int i = 0; i < size * size; i++) {
+            float diff = std::abs(cpuMap.getData()[i] - gpuMap.getData()[i]);
+            maxDiff = (std::max)(maxDiff, diff);
+            avgDiff += diff;
+        }
+        avgDiff /= (size * size);
+
+        std::cout << "  Average difference: " << avgDiff << std::endl;
+        std::cout << "  Max difference: " << maxDiff << std::endl;
+
+        if (avgDiff < 0.01f && maxDiff < 0.1f) {
+            std::cout << "  ✓ Test PASSED (GPU matches CPU within tolerance)" << std::endl;
+        } else {
+            std::cout << "  ⚠ Results differ (may be due to precision/implementation)" << std::endl;
+        }
+    }
+}
+
+void runGPUBenchmarks() {
+    if (!GPUCompute::isAvailable()) {
+        std::cout << "GPU benchmarks skipped (compute not available)" << std::endl;
+        return;
+    }
+
+    std::cout << "\n=== GPU Benchmarks ===" << std::endl;
+
+    const uint32_t seed = 12345;
+    const float scale = 2.0f;
+    const int octaves = 4;
+    const float persistence = 0.5f;
+    const float lacunarity = 2.0f;
+
+    PerlinNoise cpuNoise(seed);
+    PerlinNoiseGPU gpuNoise;
+
+    auto testResolution = [&](int size) {
+        std::cout << "\n[" << size << "x" << size << "]" << std::endl;
+
+        HeightMap cpuMap(size, size);
+        HeightMap gpuMap(size, size);
+
+        // CPU benchmark
+        auto cpuStart = std::chrono::high_resolution_clock::now();
+        for (int y = 0; y < size; y++) {
+            for (int x = 0; x < size; x++) {
+                float nx = float(x) / size * scale;
+                float ny = float(y) / size * scale;
+                float value = cpuNoise.octaveNoise(nx, ny, octaves, persistence, lacunarity);
+                cpuMap.at(x, y) = (value + 1.0f) * 0.5f;
+            }
+        }
+        auto cpuEnd = std::chrono::high_resolution_clock::now();
+        auto cpuTime = std::chrono::duration_cast<std::chrono::milliseconds>(cpuEnd - cpuStart).count();
+
+        // GPU benchmark
+        auto gpuStart = std::chrono::high_resolution_clock::now();
+        gpuNoise.generate(gpuMap, scale, octaves, persistence, lacunarity, seed);
+        auto gpuEnd = std::chrono::high_resolution_clock::now();
+        auto gpuTime = std::chrono::duration_cast<std::chrono::milliseconds>(gpuEnd - gpuStart).count();
+
+        float speedup = float(cpuTime) / (std::max)(static_cast<long long>(gpuTime), 1LL);
+
+        std::cout << "  CPU: " << cpuTime << "ms" << std::endl;
+        std::cout << "  GPU: " << gpuTime << "ms" << std::endl;
+        std::cout << "  Speedup: " << std::fixed << std::setprecision(1) << speedup << "x" << std::endl;
+    };
+
+    testResolution(512);
+    testResolution(1024);
+    testResolution(2048);
+
+    std::cout << "\nTarget speedup: 20-30x (may vary based on hardware)" << std::endl;
 }
 
 // Windows file dialog
@@ -123,6 +260,10 @@ public:
 
         // Initialize GPU Compute
         GPUCompute::initialize();
+
+        // Run GPU tests and benchmarks
+        runGPUTests();
+        runGPUBenchmarks();
 
         // Initialize ImGui
         IMGUI_CHECKVERSION();

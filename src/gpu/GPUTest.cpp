@@ -1,4 +1,12 @@
 #ifdef YMIRGE_SDL_UI_ENABLED
+// Undefine Windows min/max macros
+#ifdef max
+#undef max
+#endif
+#ifdef min
+#undef min
+#endif
+
 
 #include "GPUTest.h"
 #include "GPUCompute.h"
@@ -6,6 +14,7 @@
 #include "GPUBuffer.h"
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 
 namespace GPUTest {
 
@@ -71,7 +80,7 @@ bool verifyResults(const HeightMap& result, const HeightMap& expected, float tol
 
             if (error > tolerance) {
                 errors++;
-                maxError = std::max(maxError, error);
+                maxError = (std::max)(maxError, error);
             }
         }
     }

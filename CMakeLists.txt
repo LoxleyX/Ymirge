@@ -378,6 +378,8 @@ set(YMIRGE_SDL_UI_SOURCES
     src/gpu/GPUCompute.cpp
     src/gpu/ComputeShader.cpp
     src/gpu/GPUBuffer.cpp
+    src/gpu/GPUTest.cpp
+    src/gpu/PerlinNoiseGPU.cpp
 )
 
 set(YMIRGE_SDL_UI_HEADERS
@@ -389,6 +391,8 @@ set(YMIRGE_SDL_UI_HEADERS
     src/gpu/GPUCompute.h
     src/gpu/ComputeShader.h
     src/gpu/GPUBuffer.h
+    src/gpu/GPUTest.h
+    src/gpu/PerlinNoiseGPU.h
 )
 
 # SDL2 + ImGui UI Application
