@@ -435,8 +435,9 @@ private:
             // Notify resolution manager of interaction
             resolutionManager_->onUserInteraction();
 
-            // Generate at preview resolution for instant feedback
-            resolutionManager_->generateAt(Resolution::PREVIEW, params);
+            // Generate at target resolution
+            Resolution targetRes = uiManager_->getTargetResolution();
+            resolutionManager_->generateAt(targetRes, params);
 
             // Update sea level immediately
             renderer_->setSeaLevel(params.seaLevel);
@@ -446,7 +447,8 @@ private:
 
         // Handle generate button
         if (uiManager_->isGenerateRequested()) {
-            resolutionManager_->generateAt(Resolution::HIGH, uiManager_->getParams());
+            Resolution targetRes = uiManager_->getTargetResolution();
+            resolutionManager_->generateAt(targetRes, uiManager_->getParams());
             uiManager_->clearGenerateRequested();
         }
 
