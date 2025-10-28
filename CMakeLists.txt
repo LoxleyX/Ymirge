@@ -22,12 +22,32 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Options
 option(YMIRGE_BUILD_TESTS "Build tests" ON)
 option(YMIRGE_ENABLE_SIMD "Enable SIMD optimizations (AVX2)" ON)
+option(YMIRGE_BUILD_UI "Build with raylib UI (Phase 3)" OFF)  # OFF by default - use SDL UI
 option(YMIRGE_BUILD_SDL_UI "Build with SDL2 + ImGui UI" ON)
 
 # Find dependencies
 find_package(Threads REQUIRED)
 
 # Fetch raylib if UI is enabled
+if(YMIRGE_BUILD_UI)
+    include(FetchContent)
+
+    FetchContent_Declare(
+        raylib
+        GIT_REPOSITORY https://github.com/raysan5/raylib.git
+        GIT_TAG 5.5
+    )
+
+    # Don't build raylib examples
+    set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+
+    FetchContent_MakeAvailable(raylib)
+
+    message(STATUS "raylib UI enabled")
+else()
+    message(STATUS "raylib UI disabled (console-only build)")
+endif()
+
 # Fetch SDL2, ImGui, and OpenGL if SDL UI is enabled
 if(YMIRGE_BUILD_SDL_UI)
     include(FetchContent)
@@ -142,6 +162,21 @@ if(YMIRGE_BUILD_SDL_UI)
 else()
     message(STATUS "SDL2 UI disabled")
 endif()
+
+# GLM is now needed for core algorithms (RiverEnhancements)
+# Moved outside SDL_UI check so it's always available
+
+include(FetchContent)
+
+# GLM (OpenGL Mathematics library - header-only)
+FetchContent_Declare(
+    glm
+    GIT_REPOSITORY https://github.com/g-truc/glm.git
+    GIT_TAG 0.9.9.8
+)
+set(GLM_TEST_ENABLE OFF CACHE BOOL "" FORCE)
+set(BUILD_STATIC_LIBS OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(glm)
 
 FetchContent_MakeAvailable(glm)
 set(STB_IMAGE_WRITE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/vendor/stb_image_write.h")
@@ -319,12 +354,30 @@ set(YMIRGE_LAYER_HEADERS
     src/layers/LayerCommand.h
 )
 
+set(YMIRGE_UI_SOURCES
+    src/rendering/TerrainRenderer.cpp
+    src/ui/Slider.cpp
+    src/ui/PresetManager.cpp
+    src/ui/UIManager.cpp
+)
+
+set(YMIRGE_UI_HEADERS
+    src/rendering/TerrainRenderer.h
+    src/ui/Slider.h
+    src/ui/PresetManager.h
+    src/ui/UIManager.h
+)
+
+# SDL2 UI source files
 set(YMIRGE_SDL_UI_SOURCES
     src/rendering/TerrainRendererGL.cpp
     src/rendering/Camera3D.cpp
     src/rendering/Shader.cpp
     src/ui/PresetManager.cpp
     src/ui/UIManagerImGui.cpp
+    src/gpu/GPUCompute.cpp
+    src/gpu/ComputeShader.cpp
+    src/gpu/GPUBuffer.cpp
 )
 
 set(YMIRGE_SDL_UI_HEADERS
@@ -333,6 +386,9 @@ set(YMIRGE_SDL_UI_HEADERS
     src/rendering/Shader.h
     src/ui/PresetManager.h
     src/ui/UIManagerImGui.h
+    src/gpu/GPUCompute.h
+    src/gpu/ComputeShader.h
+    src/gpu/GPUBuffer.h
 )
 
 # SDL2 + ImGui UI Application
@@ -362,6 +418,7 @@ if(YMIRGE_BUILD_SDL_UI)
         ${CMAKE_CURRENT_SOURCE_DIR}/src/layers
         ${CMAKE_CURRENT_SOURCE_DIR}/src/rendering
         ${CMAKE_CURRENT_SOURCE_DIR}/src/ui
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/gpu
         ${CMAKE_CURRENT_SOURCE_DIR}/vendor
     )
 
@@ -381,12 +438,20 @@ if(YMIRGE_BUILD_SDL_UI)
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
-    # Copy shaders to build directory
+    # Copy shaders
     add_custom_command(TARGET ymirge POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/shaders
             $<TARGET_FILE_DIR:ymirge>/shaders
-        COMMENT "Copying shaders to output directory"
+        COMMENT "Copying shaders"
+    )
+
+    # Copy GPU shaders
+    add_custom_command(TARGET ymirge POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/gpu/shaders
+            $<TARGET_FILE_DIR:ymirge>/gpu_shaders
+        COMMENT "Copying GPU shaders"
     )
 
     # Compiler flags
@@ -404,10 +469,9 @@ if(YMIRGE_BUILD_SDL_UI)
 endif()
 
 # Copy assets
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/assets
-     DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR})
 
-# Print configuration
+# Configuration
 message(STATUS "Ymirge Configuration:")
 message(STATUS "  C++ Standard: ${CMAKE_CXX_STANDARD}")
 message(STATUS "  Build Tests: ${YMIRGE_BUILD_TESTS}")

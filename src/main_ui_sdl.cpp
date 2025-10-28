@@ -28,6 +28,7 @@
 #include "LayerSerializer.h"
 #include "ImageExporter.h"
 #include "ThreadPool.h"
+#include "GPUCompute.h"
 
 #include <memory>
 #include <iostream>
@@ -73,7 +74,7 @@ public:
         }
 
         // Set OpenGL attributes
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -120,6 +121,9 @@ public:
         std::cout << "OpenGL " << GLVersion.major << "." << GLVersion.minor << std::endl;
         std::cout << "Renderer: " << glGetString(GL_RENDERER) << std::endl;
 
+        // Initialize GPU Compute
+        GPUCompute::initialize();
+
         // Initialize ImGui
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -130,7 +134,7 @@ public:
         ImGui::StyleColorsDark();
 
         ImGui_ImplSDL2_InitForOpenGL(window_, glContext_);
-        ImGui_ImplOpenGL3_Init("#version 330");
+        ImGui_ImplOpenGL3_Init("#version 430");
 
         // Create UI manager
         uiManager_ = std::make_unique<UIManagerImGui>();
@@ -177,6 +181,9 @@ public:
     }
 
     ~YmirgeSDLApp() {
+        // Cleanup GPU Compute
+        GPUCompute::shutdown();
+
         // Cleanup ImGui
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplSDL2_Shutdown();

@@ -1,0 +1,19 @@
+#version 430
+
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(std430, binding = 0) buffer HeightBuffer {
+    float heights[];
+};
+
+uniform int width;
+uniform int height;
+uniform float addValue;
+
+void main() {
+    ivec2 coords = ivec2(gl_GlobalInvocationID.xy);
+    if (coords.x >= width || coords.y >= height) return;
+
+    int idx = coords.y * width + coords.x;
+    heights[idx] += addValue;
+}

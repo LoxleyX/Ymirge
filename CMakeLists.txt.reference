@@ -1,0 +1,132 @@
+# CMakeLists.txt Cleanup - COMPLETE
+
+**Date:** January 2025  
+**Status:** ✅ BUILD SUCCESSFUL
+
+---
+
+## Issue Resolution
+
+### Problem
+After removing old raylib code, the CMakeLists.txt had:
+1. References to deleted files (Camera3D, PresetManager initially deleted by mistake)
+2. Orphaned code fragments from automated sed edits
+3. Missing target declaration
+
+### Root Cause
+Some files initially thought to be "raylib-only" were actually shared between raylib and SDL implementations:
+- **Camera3D.h/cpp** - Used by TerrainRendererGL (OpenGL camera, NOT raylib camera)
+- **PresetManager.h/cpp** - Used by UIManagerImGui for terrain presets
+
+### Solution Applied
+
+1. **Restored necessary files:**
+   - `src/rendering/Camera3D.h/cpp` - OpenGL camera class
+   - `src/ui/PresetManager.h/cpp` - Preset management
+
+2. **Fixed CMakeLists.txt:**
+   - Removed corrupted sections (lines 322-430)
+   - Created clean SDL UI source lists
+   - Renamed target: `ymirge-ui-sdl` → `ymirge`
+   - Added Camera3D and PresetManager to build
+
+3. **Clean build structure:**
+```cmake
+set(YMIRGE_SDL_UI_SOURCES
+    src/rendering/Camera3D.cpp
+    src/rendering/TerrainRendererGL.cpp
+    src/rendering/Shader.cpp
+    src/ui/PresetManager.cpp
+    src/ui/UIManagerImGui.cpp
+)
+
+add_executable(ymirge
+    src/main_ui_sdl.cpp
+    ${YMIRGE_CORE_SOURCES}
+    ${YMIRGE_ALGORITHM_SOURCES}
+    ${YMIRGE_EXPORT_SOURCES}
+    ${YMIRGE_TOOL_SOURCES}
+    ${YMIRGE_LAYER_SOURCES}
+    ${YMIRGE_SDL_UI_SOURCES}
+    ${...}_HEADERS
+)
+```
+
+---
+
+## Build Results ✅
+
+**Executable:** `build/bin/Release/ymirge.exe` (2.7 MB)  
+**Shaders:** Copied to `build/bin/Release/shaders/`  
+**Warnings:** Only minor (unused variables, type conversions)  
+**Errors:** None
+
+### Build Command
+```bash
+cd ymirge
+rm -rf build && mkdir build && cd build
+cmake .. -G "Visual Studio 17 2022" -A x64
+cmake --build . --config Release
+```
+
+**Result:** `ymirge.vcxproj -> ymirge.exe` ✅
+
+---
+
+## Files Actually Removed (Final List)
+
+### Backup Files ✅
+- `src/core/TerrainParams.h.bak`
+- `src/layers/LayerCommand.cpp.bak`
+- `src/layers/LayerCommand.h.bak`
+- `src/layers/LayerSerializer.cpp.backup`
+- `src/main_ui_sdl.cpp.backup`
+
+### Old Raylib-Specific Code ✅
+- `src/main_ui.cpp` - Raylib UI entry point
+- `src/main.cpp` - Console test app
+- `src/ui/UIManager.h/cpp` - Raylib UI manager
+- `src/ui/Slider.h/cpp` - Raylib slider widget
+- `src/rendering/TerrainRenderer.h/cpp` - Raylib-specific renderer
+
+### Files KEPT (shared between implementations)
+- ✅ `src/rendering/Camera3D.h/cpp` - OpenGL camera (used by TerrainRendererGL)
+- ✅ `src/ui/PresetManager.h/cpp` - Preset management (used by UIManagerImGui)
+- ✅ `src/rendering/TerrainRendererGL.h/cpp` - SDL + OpenGL renderer
+- ✅ `src/rendering/Shader.h/cpp` - GLSL shader loader
+- ✅ `src/ui/UIManagerImGui.h/cpp` - ImGui UI
+
+---
+
+## Target Rename
+
+**Old:** `ymirge-ui-sdl.exe`  
+**New:** `ymirge.exe`
+
+**Rationale:** Since there's only one UI implementation now (SDL2 + ImGui), no need for suffix.
+
+---
+
+## Dependencies (Final)
+
+All fetched via CMake FetchContent:
+- SDL2 2.28.5 (static)
+- Dear ImGui (docking branch)
+- GLAD (OpenGL 3.3 loader)
+- GLM 0.9.9.8 (math library)
+
+Downloaded headers:
+- nlohmann/json 3.11.3
+- stb_image_write.h
+- tinyexr.h
+- miniz.h
+
+---
+
+## Next Steps
+
+✅ **Cleanup complete**  
+✅ **Build working**  
+⏭️ **Ready for Phase 3.1: GPU Compute Implementation**
+
+See `PHASE3_PLANNING.md` for next features.
