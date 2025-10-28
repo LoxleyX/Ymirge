@@ -31,6 +31,7 @@
 #include "GPUCompute.h"
 #include "GPUTest.h"
 #include "PerlinNoiseGPU.h"
+#include "GaussianBlurGPU.h"
 #include "PerlinNoise.h"
 
 #include <memory>
@@ -179,6 +180,77 @@ void runGPUBenchmarks() {
     testResolution(2048);
 
     std::cout << "\nTarget speedup: 20-30x (may vary based on hardware)" << std::endl;
+
+    std::cout << "\n=== Gaussian Blur Benchmarks ===" << std::endl;
+
+    GaussianBlurGPU gpuBlur;
+
+    auto testBlurResolution = [&](int size) {
+        std::cout << "\n[" << size << "x" << size << "]" << std::endl;
+
+        const int radius = 8;
+        const float sigma = 3.0f;
+
+        HeightMap cpuMap(size, size);
+        HeightMap gpuMap(size, size);
+
+        // Initialize with noise
+        PerlinNoise noise(12345);
+        for (int y = 0; y < size; y++) {
+            for (int x = 0; x < size; x++) {
+                float nx = float(x) / size * 2.0f;
+                float ny = float(y) / size * 2.0f;
+                float value = (noise.octaveNoise(nx, ny, 4, 0.5f, 2.0f) + 1.0f) * 0.5f;
+                cpuMap.at(x, y) = value;
+                gpuMap.at(x, y) = value;
+            }
+        }
+
+        // CPU benchmark (simple box blur as reference)
+        auto cpuStart = std::chrono::high_resolution_clock::now();
+        for (int round = 0; round < 3; round++) {
+            HeightMap temp = cpuMap;
+            for (int y = 0; y < size; y++) {
+                for (int x = 0; x < size; x++) {
+                    float sum = 0.0f;
+                    int count = 0;
+                    for (int dy = -radius; dy <= radius; dy++) {
+                        for (int dx = -radius; dx <= radius; dx++) {
+                            int nx = x + dx;
+                            int ny = y + dy;
+                            if (nx >= 0 && nx < size && ny >= 0 && ny < size) {
+                                sum += temp.at(nx, ny);
+                                count++;
+                            }
+                        }
+                    }
+                    cpuMap.at(x, y) = sum / count;
+                }
+            }
+        }
+        auto cpuEnd = std::chrono::high_resolution_clock::now();
+        auto cpuTime = std::chrono::duration_cast<std::chrono::milliseconds>(cpuEnd - cpuStart).count();
+
+        // GPU benchmark
+        auto gpuStart = std::chrono::high_resolution_clock::now();
+        for (int round = 0; round < 3; round++) {
+            gpuBlur.blur(gpuMap, radius, sigma);
+        }
+        auto gpuEnd = std::chrono::high_resolution_clock::now();
+        auto gpuTime = std::chrono::duration_cast<std::chrono::milliseconds>(gpuEnd - gpuStart).count();
+
+        float speedup = float(cpuTime) / (std::max)(static_cast<long long>(gpuTime), 1LL);
+
+        std::cout << "  CPU (box blur x3): " << cpuTime << "ms" << std::endl;
+        std::cout << "  GPU (Gaussian x3): " << gpuTime << "ms" << std::endl;
+        std::cout << "  Speedup: " << std::fixed << std::setprecision(1) << speedup << "x" << std::endl;
+    };
+
+    testBlurResolution(512);
+    testBlurResolution(1024);
+    testBlurResolution(2048);
+
+    std::cout << "\nTarget speedup: 15-20x (may vary based on hardware)" << std::endl;
 }
 
 // Windows file dialog

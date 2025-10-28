@@ -380,6 +380,7 @@ set(YMIRGE_SDL_UI_SOURCES
     src/gpu/GPUBuffer.cpp
     src/gpu/GPUTest.cpp
     src/gpu/PerlinNoiseGPU.cpp
+    src/gpu/GaussianBlurGPU.cpp
 )
 
 set(YMIRGE_SDL_UI_HEADERS
@@ -393,6 +394,7 @@ set(YMIRGE_SDL_UI_HEADERS
     src/gpu/GPUBuffer.h
     src/gpu/GPUTest.h
     src/gpu/PerlinNoiseGPU.h
+    src/gpu/GaussianBlurGPU.h
 )
 
 # SDL2 + ImGui UI Application
