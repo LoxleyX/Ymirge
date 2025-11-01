@@ -462,6 +462,14 @@ if(YMIRGE_BUILD_SDL_UI)
         COMMENT "Copying GPU shaders"
     )
 
+    # Copy assets
+    add_custom_command(TARGET ymirge POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_CURRENT_SOURCE_DIR}/assets
+            $<TARGET_FILE_DIR:ymirge>/assets
+        COMMENT "Copying assets"
+    )
+
     # Compiler flags
     if(MSVC)
         target_compile_options(ymirge PRIVATE /W4 /O2 /permissive-)

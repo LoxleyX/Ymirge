@@ -292,7 +292,7 @@ public:
 
         // Create window
         window_ = SDL_CreateWindow(
-            "Ymirge - Procedural Terrain Generator (SDL2 + ImGui)",
+            "Ymirge",
             SDL_WINDOWPOS_CENTERED,
             SDL_WINDOWPOS_CENTERED,
             screenWidth_,
@@ -304,6 +304,32 @@ public:
             std::cerr << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
             SDL_Quit();
             throw std::runtime_error("Failed to create window");
+        }
+
+        // Set window icon
+        {
+            int iconWidth, iconHeight, iconChannels;
+            unsigned char* iconData = stbi_load("assets/icon.png", &iconWidth, &iconHeight, &iconChannels, 4);
+            if (iconData) {
+                SDL_Surface* iconSurface = SDL_CreateRGBSurfaceFrom(
+                    iconData,
+                    iconWidth,
+                    iconHeight,
+                    32,
+                    iconWidth * 4,
+                    0x000000FF,
+                    0x0000FF00,
+                    0x00FF0000,
+                    0xFF000000
+                );
+                if (iconSurface) {
+                    SDL_SetWindowIcon(window_, iconSurface);
+                    SDL_FreeSurface(iconSurface);
+                }
+                stbi_image_free(iconData);
+            } else {
+                std::cerr << "Warning: Could not load window icon from assets/icon.png" << std::endl;
+            }
         }
 
         // Create OpenGL context

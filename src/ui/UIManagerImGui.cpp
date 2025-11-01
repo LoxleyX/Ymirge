@@ -249,7 +249,7 @@ void UIManagerImGui::renderControlPanel() {
     // Always position relative to current window size (anchored to top-right)
     ImVec2 controlPanelPos(io.DisplaySize.x - controlPanelWidth - margin, menuBarHeight + margin);
     ImGui::SetNextWindowPos(controlPanelPos, ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(controlPanelWidth, 600), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(controlPanelWidth, 750), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Controls", nullptr, ImGuiWindowFlags_NoCollapse);
 
@@ -273,9 +273,6 @@ void UIManagerImGui::renderControlPanel() {
                              "Disable for faster slider adjustment without regenerating.\n"
                              "When disabled, use the Generate button to update terrain.");
         }
-
-        ImGui::Spacing();
-        ImGui::TextWrapped("Real-time preview regenerates terrain at 512x512 resolution as you adjust sliders (~150-300ms per update).");
     }
 
     // Resolution
@@ -551,7 +548,7 @@ void UIManagerImGui::renderLayersPanel() {
     }
 
     ImGui::SameLine();
-    if (ImGui::Button("New Group", ImVec2(80, 0))) {
+    if (ImGui::Button("New", ImVec2(50, 0))) {
         // Create new empty group
         if (layerUndoStack_) {
             auto cmd = std::make_unique<CreateGroupCommand>(layerStack_, "Group", layerStack_->getLayerCount());
@@ -560,7 +557,7 @@ void UIManagerImGui::renderLayersPanel() {
         }
     }
     if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Create new empty group");
+        ImGui::SetTooltip("Create new group");
     }
 
     ImGui::Separator();
