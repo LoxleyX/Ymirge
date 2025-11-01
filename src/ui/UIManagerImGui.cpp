@@ -148,7 +148,11 @@ void UIManagerImGui::renderMenuBar() {
 
 void UIManagerImGui::renderToolPanel() {
     const float margin = 10.0f;
-    ImGui::SetNextWindowPos(ImVec2(margin, 20 + margin), ImGuiCond_FirstUseEver);
+    const float menuBarHeight = 20.0f;
+
+    // Always position relative to current window size
+    ImVec2 toolPanelPos(margin, menuBarHeight + margin);
+    ImGui::SetNextWindowPos(toolPanelPos, ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(220, 0), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Tools", nullptr, ImGuiWindowFlags_NoCollapse);
@@ -239,8 +243,13 @@ void UIManagerImGui::renderToolPanel() {
 void UIManagerImGui::renderControlPanel() {
     ImGuiIO& io = ImGui::GetIO();
     const float margin = 10.0f;
-    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 400 - margin, 20 + margin), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(380, 600), ImGuiCond_FirstUseEver);
+    const float menuBarHeight = 20.0f;
+    const float controlPanelWidth = 380.0f;
+
+    // Always position relative to current window size (anchored to top-right)
+    ImVec2 controlPanelPos(io.DisplaySize.x - controlPanelWidth - margin, menuBarHeight + margin);
+    ImGui::SetNextWindowPos(controlPanelPos, ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(controlPanelWidth, 600), ImGuiCond_FirstUseEver);
 
     ImGui::Begin("Controls", nullptr, ImGuiWindowFlags_NoCollapse);
 
@@ -470,16 +479,20 @@ void UIManagerImGui::renderLayersPanel() {
         return;  // No layer stack set yet
     }
 
-    // Position in bottom-right corner, above control panel
-    ImGuiIO& io = ImGui::GetIO();
+    // Position underneath the Tools panel on the left side
+    const float margin = 10.0f;
+    const float menuBarHeight = 20.0f;
     const float panelWidth = 280.0f;
     const float panelHeight = 350.0f;
-    const float padding = 10.0f;
-    const float controlPanelWidth = 400.0f;  // Width of control panel
+    const float spacing = 10.0f;
 
-    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - controlPanelWidth - panelWidth - padding * 2,
-                                     io.DisplaySize.y - panelHeight - padding),
-                             ImGuiCond_FirstUseEver);
+    // Get the Tools window to calculate position below it
+    // Assume Tools panel is at standard height, or we can use a fixed offset
+    const float toolPanelEstimatedHeight = 300.0f;  // Approximate height of tools panel
+
+    // Position below Tools panel with spacing
+    ImVec2 layerPanelPos(margin, menuBarHeight + margin + toolPanelEstimatedHeight + spacing);
+    ImGui::SetNextWindowPos(layerPanelPos, ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(panelWidth, panelHeight), ImGuiCond_FirstUseEver);
 
     if (!ImGui::Begin("Layers", nullptr, ImGuiWindowFlags_NoCollapse)) {
