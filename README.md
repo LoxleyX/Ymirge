@@ -14,6 +14,8 @@ A real-time procedural terrain generator built with **C++17**, **OpenGL**, and *
 - **Multi-threading** with custom thread pool and lock-free compositing
 - **SIMD optimizations** (SSE/AVX when available)
 
+[![Ymirge](https://github.com/LoxleyXI/ymirge/blob/main/assets/screenshot.png)](https://github.com/LoxleyXI/Ymirge)
+
 ## Features
 
 ### Interactive 3D Editor
