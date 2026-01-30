@@ -70,3 +70,4 @@ screenshots/
 # Debug symbols
 *.pdb
 *.ilk
+imgui.ini
