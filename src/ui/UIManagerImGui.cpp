@@ -62,16 +62,10 @@ ImVec4 UIManagerImGui::render() {
     renderLayersPanel();
 
     ImGuiIO& io = ImGui::GetIO();
-    const float margin = 8.0f;
-    const float menuBarHeight = 22.0f;
 
-    // Calculate viewport bounds between left and right panels
-    float leftPanelWidth = std::max(180.0f, std::min(240.0f, io.DisplaySize.x * 0.15f));
-    float rightPanelWidth = std::max(320.0f, std::min(400.0f, io.DisplaySize.x * 0.25f));
-
-    ImVec2 viewportPos(leftPanelWidth + margin * 2, menuBarHeight);
-    ImVec2 viewportSize(io.DisplaySize.x - leftPanelWidth - rightPanelWidth - margin * 4,
-                        io.DisplaySize.y - menuBarHeight);
+    // Viewport is the entire window - UI panels overlay on top
+    ImVec2 viewportPos(0, 0);
+    ImVec2 viewportSize(io.DisplaySize.x, io.DisplaySize.y);
 
     if (showAboutDialog_) {
         renderAboutDialog();

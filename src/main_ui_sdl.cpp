@@ -653,6 +653,11 @@ private:
                 running_ = false;
             }
 
+            // Capture mouse wheel for camera zoom
+            if (event.type == SDL_MOUSEWHEEL) {
+                pendingScrollDelta_ += event.wheel.y;
+            }
+
             // Handle keyboard shortcuts
             if (event.type == SDL_KEYDOWN) {
                 SDL_Keymod mod = SDL_GetModState();
@@ -957,13 +962,9 @@ private:
         int mouseX, mouseY;
         Uint32 mouseState = SDL_GetMouseState(&mouseX, &mouseY);
 
-        // Get viewport bounds
-        ImVec4 viewportRect = uiManager_->getLastViewportRect();
-        bool mouseOverViewport = (mouseX >= viewportRect.x && mouseX < viewportRect.x + viewportRect.z &&
-                                   mouseY >= viewportRect.y && mouseY < viewportRect.y + viewportRect.w);
-
-        // Allow scrollwheel when over viewport (ignore WantCaptureMouse for scroll)
-        float scrollDelta = mouseOverViewport ? io.MouseWheel : 0.0f;
+        // Use captured scroll delta for camera zoom
+        float scrollDelta = pendingScrollDelta_;
+        pendingScrollDelta_ = 0.0f;
 
         if (activeTool == BrushType::VIEW) {
             // View mode: left-drag rotates, right-drag pans, scroll zooms
@@ -1434,6 +1435,7 @@ private:
     HeightMap compositeHeightMap_;  // Result of compositing all layers
 
     bool lastUpdateWasGenerating_;
+    float pendingScrollDelta_ = 0.0f;
 };
 
 int main(int argc, char* argv[]) {
