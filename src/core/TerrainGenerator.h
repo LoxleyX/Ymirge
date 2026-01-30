@@ -8,6 +8,7 @@
 #include <future>
 #include <atomic>
 #include <mutex>
+#include <random>
 
 class TerrainGenerator {
 public:
@@ -42,6 +43,7 @@ private:
     void applyErosion(const TerrainParams& params);
     void applyPeaks(const TerrainParams& params);
     void applyIslandMask(const TerrainParams& params);
+    void applyArchipelagoMask(const TerrainParams& params);
     void applyTerracing(const TerrainParams& params);
     void applyEdgePadding(const TerrainParams& params);
     void flattenLowAreas(const TerrainParams& params);

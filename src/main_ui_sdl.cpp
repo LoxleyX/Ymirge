@@ -260,6 +260,150 @@ void runGPUBenchmarks() {
 #endif
 
 /**
+ * Modern dark theme for ImGui
+ * Clean, professional look with accent colors
+ */
+void setupImGuiTheme() {
+    ImGuiStyle& style = ImGui::GetStyle();
+    ImVec4* colors = style.Colors;
+
+    // Base colors - dark with blue accent
+    const ImVec4 bg_dark      = ImVec4(0.08f, 0.08f, 0.10f, 1.00f);
+    const ImVec4 bg_mid       = ImVec4(0.12f, 0.12f, 0.14f, 1.00f);
+    const ImVec4 bg_light     = ImVec4(0.18f, 0.18f, 0.22f, 1.00f);
+    const ImVec4 accent       = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+    const ImVec4 accent_hover = ImVec4(0.35f, 0.65f, 1.00f, 1.00f);
+    const ImVec4 accent_dark  = ImVec4(0.18f, 0.44f, 0.78f, 1.00f);
+    const ImVec4 text         = ImVec4(0.92f, 0.93f, 0.94f, 1.00f);
+    const ImVec4 text_dim     = ImVec4(0.55f, 0.58f, 0.62f, 1.00f);
+    const ImVec4 border       = ImVec4(0.25f, 0.26f, 0.28f, 1.00f);
+
+    // Window
+    colors[ImGuiCol_WindowBg]             = bg_mid;
+    colors[ImGuiCol_ChildBg]              = bg_dark;
+    colors[ImGuiCol_PopupBg]              = ImVec4(0.10f, 0.10f, 0.12f, 0.98f);
+
+    // Borders
+    colors[ImGuiCol_Border]               = border;
+    colors[ImGuiCol_BorderShadow]         = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+
+    // Frame (inputs, sliders)
+    colors[ImGuiCol_FrameBg]              = bg_dark;
+    colors[ImGuiCol_FrameBgHovered]       = bg_light;
+    colors[ImGuiCol_FrameBgActive]        = ImVec4(0.22f, 0.22f, 0.26f, 1.00f);
+
+    // Title bar
+    colors[ImGuiCol_TitleBg]              = bg_dark;
+    colors[ImGuiCol_TitleBgActive]        = ImVec4(0.10f, 0.10f, 0.12f, 1.00f);
+    colors[ImGuiCol_TitleBgCollapsed]     = bg_dark;
+
+    // Menu bar
+    colors[ImGuiCol_MenuBarBg]            = bg_dark;
+
+    // Scrollbar
+    colors[ImGuiCol_ScrollbarBg]          = bg_dark;
+    colors[ImGuiCol_ScrollbarGrab]        = ImVec4(0.30f, 0.30f, 0.34f, 1.00f);
+    colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.38f, 0.38f, 0.42f, 1.00f);
+    colors[ImGuiCol_ScrollbarGrabActive]  = ImVec4(0.45f, 0.45f, 0.50f, 1.00f);
+
+    // Checkmark, slider grab
+    colors[ImGuiCol_CheckMark]            = accent;
+    colors[ImGuiCol_SliderGrab]           = accent_dark;
+    colors[ImGuiCol_SliderGrabActive]     = accent;
+
+    // Buttons
+    colors[ImGuiCol_Button]               = ImVec4(0.20f, 0.20f, 0.24f, 1.00f);
+    colors[ImGuiCol_ButtonHovered]        = ImVec4(0.28f, 0.28f, 0.32f, 1.00f);
+    colors[ImGuiCol_ButtonActive]         = accent_dark;
+
+    // Headers (collapsing headers, tree nodes)
+    colors[ImGuiCol_Header]               = ImVec4(0.20f, 0.20f, 0.24f, 1.00f);
+    colors[ImGuiCol_HeaderHovered]        = ImVec4(0.26f, 0.26f, 0.30f, 1.00f);
+    colors[ImGuiCol_HeaderActive]         = accent_dark;
+
+    // Separator
+    colors[ImGuiCol_Separator]            = border;
+    colors[ImGuiCol_SeparatorHovered]     = accent;
+    colors[ImGuiCol_SeparatorActive]      = accent;
+
+    // Resize grip
+    colors[ImGuiCol_ResizeGrip]           = ImVec4(0.26f, 0.26f, 0.30f, 0.40f);
+    colors[ImGuiCol_ResizeGripHovered]    = accent;
+    colors[ImGuiCol_ResizeGripActive]     = accent_hover;
+
+    // Tabs
+    colors[ImGuiCol_Tab]                  = bg_dark;
+    colors[ImGuiCol_TabHovered]           = accent;
+    colors[ImGuiCol_TabActive]            = accent_dark;
+    colors[ImGuiCol_TabUnfocused]         = bg_dark;
+    colors[ImGuiCol_TabUnfocusedActive]   = ImVec4(0.16f, 0.16f, 0.20f, 1.00f);
+
+    // Docking
+    colors[ImGuiCol_DockingPreview]       = ImVec4(accent.x, accent.y, accent.z, 0.7f);
+    colors[ImGuiCol_DockingEmptyBg]       = bg_dark;
+
+    // Text
+    colors[ImGuiCol_Text]                 = text;
+    colors[ImGuiCol_TextDisabled]         = text_dim;
+
+    // Plot
+    colors[ImGuiCol_PlotLines]            = accent;
+    colors[ImGuiCol_PlotLinesHovered]     = accent_hover;
+    colors[ImGuiCol_PlotHistogram]        = accent;
+    colors[ImGuiCol_PlotHistogramHovered] = accent_hover;
+
+    // Table
+    colors[ImGuiCol_TableHeaderBg]        = bg_dark;
+    colors[ImGuiCol_TableBorderStrong]    = border;
+    colors[ImGuiCol_TableBorderLight]     = ImVec4(0.20f, 0.20f, 0.22f, 1.00f);
+    colors[ImGuiCol_TableRowBg]           = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+    colors[ImGuiCol_TableRowBgAlt]        = ImVec4(1.00f, 1.00f, 1.00f, 0.02f);
+
+    // Selection
+    colors[ImGuiCol_TextSelectedBg]       = ImVec4(accent.x, accent.y, accent.z, 0.35f);
+
+    // Drag/drop
+    colors[ImGuiCol_DragDropTarget]       = accent;
+
+    // Nav
+    colors[ImGuiCol_NavHighlight]         = accent;
+    colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
+    colors[ImGuiCol_NavWindowingDimBg]    = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
+
+    // Modal dim
+    colors[ImGuiCol_ModalWindowDimBg]     = ImVec4(0.00f, 0.00f, 0.00f, 0.60f);
+
+    // Style tweaks for modern look
+    style.WindowRounding    = 6.0f;
+    style.ChildRounding     = 4.0f;
+    style.FrameRounding     = 4.0f;
+    style.PopupRounding     = 4.0f;
+    style.ScrollbarRounding = 6.0f;
+    style.GrabRounding      = 4.0f;
+    style.TabRounding       = 4.0f;
+
+    style.WindowBorderSize  = 1.0f;
+    style.ChildBorderSize   = 1.0f;
+    style.PopupBorderSize   = 1.0f;
+    style.FrameBorderSize   = 0.0f;
+
+    style.WindowPadding     = ImVec2(10.0f, 10.0f);
+    style.FramePadding      = ImVec2(8.0f, 4.0f);
+    style.ItemSpacing       = ImVec2(8.0f, 6.0f);
+    style.ItemInnerSpacing  = ImVec2(6.0f, 4.0f);
+    style.IndentSpacing     = 20.0f;
+    style.ScrollbarSize     = 14.0f;
+    style.GrabMinSize       = 12.0f;
+
+    style.WindowTitleAlign  = ImVec2(0.5f, 0.5f);
+    style.ButtonTextAlign   = ImVec2(0.5f, 0.5f);
+
+    // Anti-aliasing
+    style.AntiAliasedLines  = true;
+    style.AntiAliasedFill   = true;
+}
+
+/**
  * Main SDL2 + ImGui Application
  *
  * Real-time terrain generation with interactive controls using ImGui.
@@ -366,7 +510,8 @@ public:
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-        ImGui::StyleColorsDark();
+        // Apply custom modern dark theme
+        setupImGuiTheme();
 
         ImGui_ImplSDL2_InitForOpenGL(window_, glContext_);
         ImGui_ImplOpenGL3_Init("#version 430");

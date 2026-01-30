@@ -168,29 +168,72 @@ void PresetManager::definePresets() {
         presetOrder_.push_back("Canyon Lands");
     }
 
-    // Archipelago
+    // Archipelago - Multiple small islands
     {
         TerrainParams params;
-        params.scale = 110.0f;
+        params.scale = 80.0f;           // Smaller scale for more detail per island
         params.octaves = 5;
-        params.persistence = 0.42f;
+        params.persistence = 0.45f;
         params.lacunarity = 2.0f;
-        params.valleyStrength = 0.35f;
-        params.valleySharpness = 1.4f;
-        params.valleyWidth = 0.55f;
-        params.flattenValleys = 0.75f;
-        params.valleyConnectivity = 0.5f;
-        params.riverIntensity = 0.15f;
+        params.valleyStrength = 0.25f;
+        params.valleySharpness = 1.2f;
+        params.valleyWidth = 0.5f;
+        params.flattenValleys = 0.6f;   // Some flat areas for beaches
+        params.valleyConnectivity = 0.3f;
+        params.riverIntensity = 0.0f;   // No rivers on small islands
         params.riverWidth = 0.015f;
-        params.erosion = 0.3f;
+        params.erosion = 0.25f;
         params.terracing = 0;
-        params.peaks = 0.25f;
-        params.island = 0.75f;
-        params.edgePadding = 0.08f;
-        params.islandShape = 2.0f;
+        params.peaks = 0.3f;            // Small peaks on islands
+        params.island = 0.95f;          // Strong island mask
+        params.edgePadding = 0.05f;
+        params.islandShape = 2.2f;
+        params.seaLevel = 0.35f;        // Higher sea level for more water
+
+        // Archipelago mode - multiple islands
+        params.archipelagoMode = true;
+        params.archipelagoIslandCount = 12;
+        params.archipelagoMinSize = 0.08f;
+        params.archipelagoMaxSize = 0.22f;
+        params.archipelagoSpacing = 0.12f;
+        params.archipelagoVariation = 0.6f;
 
         presets_["Archipelago"] = params;
         presetOrder_.push_back("Archipelago");
+    }
+
+    // Pirate Cove - Medium islands with harbors
+    {
+        TerrainParams params;
+        params.scale = 100.0f;
+        params.octaves = 5;
+        params.persistence = 0.42f;
+        params.lacunarity = 2.0f;
+        params.valleyStrength = 0.3f;
+        params.valleySharpness = 1.4f;
+        params.valleyWidth = 0.6f;
+        params.flattenValleys = 0.7f;   // Flat areas for harbors/beaches
+        params.valleyConnectivity = 0.4f;
+        params.riverIntensity = 0.1f;
+        params.riverWidth = 0.02f;
+        params.erosion = 0.3f;
+        params.terracing = 0;
+        params.peaks = 0.4f;            // Volcanic peaks
+        params.island = 0.9f;
+        params.edgePadding = 0.06f;
+        params.islandShape = 2.0f;
+        params.seaLevel = 0.30f;
+
+        // Archipelago mode - fewer, larger islands
+        params.archipelagoMode = true;
+        params.archipelagoIslandCount = 6;
+        params.archipelagoMinSize = 0.15f;
+        params.archipelagoMaxSize = 0.35f;
+        params.archipelagoSpacing = 0.15f;
+        params.archipelagoVariation = 0.5f;
+
+        presets_["Pirate Cove"] = params;
+        presetOrder_.push_back("Pirate Cove");
     }
 
     // Extreme Contrast

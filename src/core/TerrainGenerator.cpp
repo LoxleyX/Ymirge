@@ -199,6 +199,13 @@ void TerrainGenerator::applyPeaks(const TerrainParams& params) {
 void TerrainGenerator::applyIslandMask(const TerrainParams& params) {
     std::lock_guard<std::mutex> lock(heightMapMutex_);
 
+    if (params.archipelagoMode) {
+        // Generate multiple islands
+        applyArchipelagoMask(params);
+        return;
+    }
+
+    // Single island mode (original behavior)
     float centerX = width_ * 0.5f;
     float centerY = height_ * 0.5f;
     float maxDist = std::sqrt(centerX * centerX + centerY * centerY);
@@ -217,6 +224,100 @@ void TerrainGenerator::applyIslandMask(const TerrainParams& params) {
 
             // Blend with island strength
             heightMap_.at(x, yi) *= (1.0f - params.island) + (islandEffect * params.island);
+        }
+    }, 8);
+}
+
+void TerrainGenerator::applyArchipelagoMask(const TerrainParams& params) {
+    // Generate island centers using seeded random with minimum spacing
+    std::vector<std::pair<float, float>> islandCenters;
+    std::vector<float> islandRadii;
+
+    std::mt19937 rng(params.seed + 999);  // Different seed for island placement
+    std::uniform_real_distribution<float> posDist(0.1f, 0.9f);
+    std::uniform_real_distribution<float> sizeDist(params.archipelagoMinSize, params.archipelagoMaxSize);
+    std::uniform_real_distribution<float> noiseDist(-1.0f, 1.0f);
+
+    // Try to place islands with minimum spacing
+    int attempts = 0;
+    int maxAttempts = params.archipelagoIslandCount * 50;
+
+    while (islandCenters.size() < static_cast<size_t>(params.archipelagoIslandCount) && attempts < maxAttempts) {
+        attempts++;
+
+        float cx = posDist(rng);
+        float cy = posDist(rng);
+
+        // Check spacing from existing islands
+        bool tooClose = false;
+        for (size_t i = 0; i < islandCenters.size(); ++i) {
+            float dx = cx - islandCenters[i].first;
+            float dy = cy - islandCenters[i].second;
+            float dist = std::sqrt(dx * dx + dy * dy);
+            if (dist < params.archipelagoSpacing + islandRadii[i] * 0.5f) {
+                tooClose = true;
+                break;
+            }
+        }
+
+        if (!tooClose) {
+            islandCenters.push_back({cx, cy});
+            islandRadii.push_back(sizeDist(rng));
+        }
+    }
+
+    // Create noise for irregular island shapes
+    PerlinNoise shapeNoise(params.seed + 1000);
+
+    // Apply multi-island mask
+    threadPool_->parallelFor(0, height_, [this, &params, &islandCenters, &islandRadii, &shapeNoise](size_t y) {
+        int yi = static_cast<int>(y);
+        float ny = static_cast<float>(y) / height_;
+
+        for (int x = 0; x < width_; ++x) {
+            float nx = static_cast<float>(x) / width_;
+
+            // Find contribution from all islands
+            float totalIslandEffect = 0.0f;
+
+            for (size_t i = 0; i < islandCenters.size(); ++i) {
+                float cx = islandCenters[i].first;
+                float cy = islandCenters[i].second;
+                float radius = islandRadii[i];
+
+                float dx = nx - cx;
+                float dy = ny - cy;
+                float dist = std::sqrt(dx * dx + dy * dy);
+
+                // Add noise to radius for irregular shapes
+                float angle = std::atan2(dy, dx);
+                float noiseVal = shapeNoise.octaveNoise(
+                    cx * 10.0f + std::cos(angle) * 3.0f,
+                    cy * 10.0f + std::sin(angle) * 3.0f,
+                    3, 0.5f, 2.0f);
+                float noisyRadius = radius * (1.0f + noiseVal * params.archipelagoVariation * 0.4f);
+
+                if (dist < noisyRadius) {
+                    // Smooth falloff from center to edge
+                    float normalizedDist = dist / noisyRadius;
+                    float falloff = 1.0f - std::pow(normalizedDist, params.islandShape);
+                    falloff = std::max(0.0f, falloff);
+
+                    // Use max to combine overlapping islands
+                    totalIslandEffect = std::max(totalIslandEffect, falloff);
+                }
+            }
+
+            // Apply island mask
+            float current = heightMap_.at(x, yi);
+            float masked = current * ((1.0f - params.island) + (totalIslandEffect * params.island));
+
+            // Push underwater areas deeper
+            if (totalIslandEffect < 0.1f) {
+                masked *= 0.3f;  // Ocean floor
+            }
+
+            heightMap_.at(x, yi) = masked;
         }
     }, 8);
 }

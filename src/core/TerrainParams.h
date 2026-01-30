@@ -60,9 +60,13 @@ struct TerrainParams {
     float hydraulicDeposition = 0.3f;    // Deposition rate
     int hydraulicIterations = 1;         // Number of passes
 
-    // New for archipelago
-    float islandDensity = 0.5f;
-    float islandSize = 100.0f;
+    // Archipelago mode - multiple islands
+    bool archipelagoMode = false;        // Enable multi-island generation
+    int archipelagoIslandCount = 8;      // Number of islands to generate
+    float archipelagoMinSize = 0.15f;    // Min island radius (0-1 of map)
+    float archipelagoMaxSize = 0.35f;    // Max island radius (0-1 of map)
+    float archipelagoSpacing = 0.1f;     // Min spacing between island centers (0-1)
+    float archipelagoVariation = 0.5f;   // Shape variation (0=circular, 1=irregular)
 
     // Rendering
     float seaLevel = 0.25f;  // Height of sea plane (0-1)
@@ -86,8 +90,10 @@ struct TerrainParams {
                island == other.island &&
                edgePadding == other.edgePadding &&
                islandShape == other.islandShape &&
-               islandDensity == other.islandDensity &&
-               islandSize == other.islandSize &&
+               archipelagoMode == other.archipelagoMode &&
+               archipelagoIslandCount == other.archipelagoIslandCount &&
+               archipelagoMinSize == other.archipelagoMinSize &&
+               archipelagoMaxSize == other.archipelagoMaxSize &&
                seaLevel == other.seaLevel &&
                terrainSmoothness == other.terrainSmoothness &&
                softeningThreshold == other.softeningThreshold;

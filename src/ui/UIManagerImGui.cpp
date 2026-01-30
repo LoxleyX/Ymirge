@@ -3,6 +3,7 @@
 #include "UIManagerImGui.h"
 #include "../layers/LayerGroup.h"
 #include <SDL2/SDL.h>
+#include <algorithm>
 
 UIManagerImGui::UIManagerImGui()
     : paramsChanged_(false)
@@ -61,10 +62,16 @@ ImVec4 UIManagerImGui::render() {
     renderLayersPanel();
 
     ImGuiIO& io = ImGui::GetIO();
-    const float menuBarHeight = 20.0f;
+    const float margin = 8.0f;
+    const float menuBarHeight = 22.0f;
 
-    ImVec2 viewportPos(0, menuBarHeight);
-    ImVec2 viewportSize(io.DisplaySize.x, io.DisplaySize.y - menuBarHeight);
+    // Calculate viewport bounds between left and right panels
+    float leftPanelWidth = std::max(180.0f, std::min(240.0f, io.DisplaySize.x * 0.15f));
+    float rightPanelWidth = std::max(320.0f, std::min(400.0f, io.DisplaySize.x * 0.25f));
+
+    ImVec2 viewportPos(leftPanelWidth + margin * 2, menuBarHeight);
+    ImVec2 viewportSize(io.DisplaySize.x - leftPanelWidth - rightPanelWidth - margin * 4,
+                        io.DisplaySize.y - menuBarHeight);
 
     if (showAboutDialog_) {
         renderAboutDialog();
@@ -147,15 +154,19 @@ void UIManagerImGui::renderMenuBar() {
 }
 
 void UIManagerImGui::renderToolPanel() {
-    const float margin = 10.0f;
-    const float menuBarHeight = 20.0f;
+    ImGuiIO& io = ImGui::GetIO();
+    const float margin = 8.0f;
+    const float menuBarHeight = 22.0f;
+
+    // Responsive panel width - scales with window but has min/max
+    float panelWidth = std::max(180.0f, std::min(240.0f, io.DisplaySize.x * 0.15f));
 
     // Always position relative to current window size
     ImVec2 toolPanelPos(margin, menuBarHeight + margin);
     ImGui::SetNextWindowPos(toolPanelPos, ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(220, 0), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(panelWidth, 0), ImGuiCond_Always);
 
-    ImGui::Begin("Tools", nullptr, ImGuiWindowFlags_NoCollapse);
+    ImGui::Begin("Tools", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
 
     const char* tools[] = {"View (V)", "Raise (R)", "Lower (L)", "Smooth (S)", "Flatten (F)", "Stamp (T)"};
     BrushType toolTypes[] = {BrushType::VIEW, BrushType::RAISE, BrushType::LOWER,
@@ -242,16 +253,22 @@ void UIManagerImGui::renderToolPanel() {
 
 void UIManagerImGui::renderControlPanel() {
     ImGuiIO& io = ImGui::GetIO();
-    const float margin = 10.0f;
-    const float menuBarHeight = 20.0f;
-    const float controlPanelWidth = 380.0f;
+    const float margin = 8.0f;
+    const float menuBarHeight = 22.0f;
+
+    // Responsive panel width - scales with window but has min/max
+    float controlPanelWidth = std::max(320.0f, std::min(400.0f, io.DisplaySize.x * 0.25f));
+
+    // Responsive height - leave room for layers panel below
+    float availableHeight = io.DisplaySize.y - menuBarHeight - margin * 3;
+    float controlPanelHeight = std::max(400.0f, availableHeight * 0.6f);
 
     // Always position relative to current window size (anchored to top-right)
     ImVec2 controlPanelPos(io.DisplaySize.x - controlPanelWidth - margin, menuBarHeight + margin);
     ImGui::SetNextWindowPos(controlPanelPos, ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(controlPanelWidth, 750), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(controlPanelWidth, controlPanelHeight), ImGuiCond_Always);
 
-    ImGui::Begin("Controls", nullptr, ImGuiWindowFlags_NoCollapse);
+    ImGui::Begin("Controls", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
 
     // Presets
     if (ImGui::CollapsingHeader("Presets", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -476,21 +493,24 @@ void UIManagerImGui::renderLayersPanel() {
         return;  // No layer stack set yet
     }
 
-    // Position underneath the Tools panel on the left side
-    const float margin = 10.0f;
-    const float menuBarHeight = 20.0f;
-    const float panelWidth = 280.0f;
-    const float panelHeight = 350.0f;
-    const float spacing = 10.0f;
+    ImGuiIO& io = ImGui::GetIO();
+    const float margin = 8.0f;
+    const float menuBarHeight = 22.0f;
 
-    // Get the Tools window to calculate position below it
-    // Assume Tools panel is at standard height, or we can use a fixed offset
-    const float toolPanelEstimatedHeight = 300.0f;  // Approximate height of tools panel
+    // Responsive panel width
+    float panelWidth = std::max(220.0f, std::min(300.0f, io.DisplaySize.x * 0.18f));
 
-    // Position below Tools panel with spacing
-    ImVec2 layerPanelPos(margin, menuBarHeight + margin + toolPanelEstimatedHeight + spacing);
+    // Position below Controls panel on the right side
+    float controlPanelWidth = std::max(320.0f, std::min(400.0f, io.DisplaySize.x * 0.25f));
+    float availableHeight = io.DisplaySize.y - menuBarHeight - margin * 3;
+    float controlPanelHeight = std::max(400.0f, availableHeight * 0.6f);
+    float layerPanelHeight = availableHeight - controlPanelHeight - margin;
+
+    // Position below controls panel
+    ImVec2 layerPanelPos(io.DisplaySize.x - controlPanelWidth - margin,
+                         menuBarHeight + margin + controlPanelHeight + margin);
     ImGui::SetNextWindowPos(layerPanelPos, ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(panelWidth, panelHeight), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(controlPanelWidth, layerPanelHeight), ImGuiCond_Always);
 
     if (!ImGui::Begin("Layers", nullptr, ImGuiWindowFlags_NoCollapse)) {
         ImGui::End();
