@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+
 /**
  * UndoCommand - Base class for undoable commands
  *

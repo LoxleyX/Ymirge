@@ -3,6 +3,8 @@ build/
 bin/
 obj/
 out/
+.zig-cache/
+zig-out/
 
 # CMake
 CMakeCache.txt
