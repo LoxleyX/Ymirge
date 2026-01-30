@@ -1,0 +1,103 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            libsdl2-dev \
+            libgl1-mesa-dev \
+            libglu1-mesa-dev
+
+      - name: Build
+        run: |
+          mkdir build && cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --config Release -j$(nproc)
+
+      - name: Package
+        run: |
+          mkdir -p release/ymirge-linux
+          cp build/bin/ymirge-ui release/ymirge-linux/
+          cp -r shaders release/ymirge-linux/
+          cp -r assets release/ymirge-linux/
+          cp README.md LICENSE* release/ymirge-linux/ 2>/dev/null || true
+          cd release && tar -czvf ymirge-linux-${{ github.ref_name }}.tar.gz ymirge-linux
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ymirge-linux
+          path: release/ymirge-linux-*.tar.gz
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup MSVC
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build
+        run: |
+          mkdir build
+          cd build
+          cmake .. -G "Visual Studio 17 2022" -A x64
+          cmake --build . --config Release
+
+      - name: Package
+        shell: bash
+        run: |
+          mkdir -p release/ymirge-windows
+          cp build/bin/Release/ymirge-ui.exe release/ymirge-windows/
+          cp -r shaders release/ymirge-windows/
+          cp -r assets release/ymirge-windows/
+          cp README.md release/ymirge-windows/ 2>/dev/null || true
+          # Copy SDL2 DLL
+          cp build/_deps/sdl2-src/lib/x64/SDL2.dll release/ymirge-windows/ 2>/dev/null || true
+          cd release && 7z a ymirge-windows-${{ github.ref_name }}.zip ymirge-windows
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ymirge-windows
+          path: release/ymirge-windows-*.zip
+
+  release:
+    needs: [build-linux, build-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ymirge-linux
+          path: ./artifacts
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ymirge-windows
+          path: ./artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/*
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
