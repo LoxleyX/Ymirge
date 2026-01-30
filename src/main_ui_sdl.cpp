@@ -514,12 +514,40 @@ public:
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 #endif
 
-        // HiDPI scaling - get scale factor from SDL
+        // HiDPI scaling - try multiple methods to detect scale
+        float dpiScale = 1.0f;
+
+        // Method 1: Check drawable vs window size ratio
         int windowW, windowH, drawableW, drawableH;
         SDL_GetWindowSize(window_, &windowW, &windowH);
         SDL_GL_GetDrawableSize(window_, &drawableW, &drawableH);
-        float dpiScale = (windowW > 0) ? static_cast<float>(drawableW) / static_cast<float>(windowW) : 1.0f;
+        if (windowW > 0 && drawableW > windowW) {
+            dpiScale = static_cast<float>(drawableW) / static_cast<float>(windowW);
+        }
+
+        // Method 2: Check display DPI (96 is standard, 192 is 2x, etc.)
+        if (dpiScale <= 1.0f) {
+            float ddpi, hdpi, vdpi;
+            int displayIndex = SDL_GetWindowDisplayIndex(window_);
+            if (SDL_GetDisplayDPI(displayIndex, &ddpi, &hdpi, &vdpi) == 0 && ddpi > 0) {
+                dpiScale = ddpi / 96.0f;
+            }
+        }
+
+        // Method 3: Check GDK_SCALE environment variable (common on Linux)
+        if (dpiScale <= 1.0f) {
+            const char* gdkScale = std::getenv("GDK_SCALE");
+            if (gdkScale) {
+                dpiScale = static_cast<float>(std::atof(gdkScale));
+            }
+        }
+
+        // Clamp to reasonable range and apply reduction (DPI detection often overshoots)
+        dpiScale *= 0.7f;
         if (dpiScale < 1.0f) dpiScale = 1.0f;
+        if (dpiScale > 4.0f) dpiScale = 4.0f;
+
+        std::cout << "DPI Scale: " << dpiScale << std::endl;
 
         // Scale font for HiDPI
         float fontSize = 15.0f * dpiScale;
@@ -543,6 +571,7 @@ public:
 
         // Create UI manager
         uiManager_ = std::make_unique<UIManagerImGui>();
+        uiManager_->setDpiScale(dpiScale);
 
         // Create thread pool
         threadPool_ = std::make_unique<ThreadPool>(std::thread::hardware_concurrency());

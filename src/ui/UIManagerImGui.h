@@ -81,6 +81,8 @@ public:
 
     void setLayerStack(LayerStack* layerStack) { layerStack_ = layerStack; }
     void setLayerUndoStack(LayerUndoStack* undoStack) { layerUndoStack_ = undoStack; }
+    void setDpiScale(float scale) { dpiScale_ = scale; }
+    float getDpiScale() const { return dpiScale_; }
     LayerUndoStack* getLayerUndoStack() const { return layerUndoStack_; }
 
     EditMode getEditMode() const { return editMode_; }
@@ -137,6 +139,8 @@ private:
     bool enableRealTimePreview_;
 
     ExportFormat exportFormat_;
+
+    float dpiScale_ = 1.0f;
 
     BrushType activeTool_;
     int brushSize_;

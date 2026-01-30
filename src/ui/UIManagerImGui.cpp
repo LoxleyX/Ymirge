@@ -155,11 +155,11 @@ void UIManagerImGui::renderMenuBar() {
 
 void UIManagerImGui::renderToolPanel() {
     ImGuiIO& io = ImGui::GetIO();
-    const float margin = 8.0f;
-    const float menuBarHeight = 22.0f;
+    const float margin = 8.0f * dpiScale_;
+    const float menuBarHeight = 22.0f * dpiScale_;
 
-    // Responsive panel width - scales with window but has min/max
-    float panelWidth = std::max(180.0f, std::min(240.0f, io.DisplaySize.x * 0.15f));
+    // Responsive panel width - scales with window and DPI
+    float panelWidth = std::max(180.0f * dpiScale_, std::min(280.0f * dpiScale_, io.DisplaySize.x * 0.18f));
 
     // Always position relative to current window size
     ImVec2 toolPanelPos(margin, menuBarHeight + margin);
@@ -257,11 +257,11 @@ void UIManagerImGui::renderControlPanel() {
     const float menuBarHeight = 22.0f;
 
     // Responsive panel width - scales with window but has min/max
-    float controlPanelWidth = std::max(320.0f, std::min(400.0f, io.DisplaySize.x * 0.25f));
+    float controlPanelWidth = std::max(320.0f * dpiScale_, std::min(420.0f * dpiScale_, io.DisplaySize.x * 0.28f));
 
     // Responsive height - leave room for layers panel below
     float availableHeight = io.DisplaySize.y - menuBarHeight - margin * 3;
-    float controlPanelHeight = std::max(400.0f, availableHeight * 0.6f);
+    float controlPanelHeight = std::max(400.0f * dpiScale_, availableHeight * 0.6f);
 
     // Always position relative to current window size (anchored to top-right)
     ImVec2 controlPanelPos(io.DisplaySize.x - controlPanelWidth - margin, menuBarHeight + margin);
@@ -403,8 +403,8 @@ void UIManagerImGui::renderControlPanel() {
 
     // Export message (if active)
     if (exportMessage_ && (SDL_GetTicks() / 1000.0 - exportMessageTime_) < 3.0) {
-        ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x / 2 - 150, io.DisplaySize.y - 80), ImGuiCond_Always);
-        ImGui::SetNextWindowSize(ImVec2(300, 60), ImGuiCond_Always);
+        ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x / 2 - 150 * dpiScale_, io.DisplaySize.y - 80 * dpiScale_), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(300 * dpiScale_, 60 * dpiScale_), ImGuiCond_Always);
         ImGui::Begin("Export Message", nullptr,
             ImGuiWindowFlags_NoTitleBar |
             ImGuiWindowFlags_NoResize |
@@ -418,8 +418,8 @@ void UIManagerImGui::renderControlPanel() {
 }
 
 void UIManagerImGui::renderAboutDialog() {
-    ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x / 2 - 250, ImGui::GetIO().DisplaySize.y / 2 - 150), ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(500, 300), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x / 2 - 250 * dpiScale_, ImGui::GetIO().DisplaySize.y / 2 - 150 * dpiScale_), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(500 * dpiScale_, 300 * dpiScale_), ImGuiCond_Always);
 
     ImGui::Begin("About Ymirge", &showAboutDialog_,
         ImGuiWindowFlags_NoResize |
@@ -448,8 +448,8 @@ void UIManagerImGui::renderAboutDialog() {
 }
 
 void UIManagerImGui::renderShortcutsDialog() {
-    ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x / 2 - 300, ImGui::GetIO().DisplaySize.y / 2 - 250), ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(600, 500), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x / 2 - 300 * dpiScale_, ImGui::GetIO().DisplaySize.y / 2 - 250 * dpiScale_), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(600 * dpiScale_, 500 * dpiScale_), ImGuiCond_Always);
 
     ImGui::Begin("Keyboard Shortcuts", &showShortcutsDialog_,
         ImGuiWindowFlags_NoResize |
@@ -494,16 +494,16 @@ void UIManagerImGui::renderLayersPanel() {
     }
 
     ImGuiIO& io = ImGui::GetIO();
-    const float margin = 8.0f;
-    const float menuBarHeight = 22.0f;
+    const float margin = 8.0f * dpiScale_;
+    const float menuBarHeight = 22.0f * dpiScale_;
 
-    // Responsive panel width
-    float panelWidth = std::max(220.0f, std::min(300.0f, io.DisplaySize.x * 0.18f));
+    // Responsive panel width - scales with DPI
+    float panelWidth = std::max(220.0f * dpiScale_, std::min(300.0f * dpiScale_, io.DisplaySize.x * 0.18f));
 
     // Position below Controls panel on the right side
-    float controlPanelWidth = std::max(320.0f, std::min(400.0f, io.DisplaySize.x * 0.25f));
+    float controlPanelWidth = std::max(320.0f * dpiScale_, std::min(420.0f * dpiScale_, io.DisplaySize.x * 0.28f));
     float availableHeight = io.DisplaySize.y - menuBarHeight - margin * 3;
-    float controlPanelHeight = std::max(400.0f, availableHeight * 0.6f);
+    float controlPanelHeight = std::max(400.0f * dpiScale_, availableHeight * 0.6f);
     float layerPanelHeight = availableHeight - controlPanelHeight - margin;
 
     // Position below controls panel
