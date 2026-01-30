@@ -10,29 +10,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            cmake \
-            libsdl2-dev \
-            libgl1-mesa-dev \
-            libglu1-mesa-dev
+          sudo apt-get install -y libsdl2-dev libgl1-mesa-dev
+
+      - name: Setup Zig
+        uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.13.0
 
       - name: Build
-        run: |
-          mkdir build && cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release
-          cmake --build . --config Release -j$(nproc)
+        run: zig build -p bin -Doptimize=ReleaseFast
 
       - name: Package
         run: |
           mkdir -p release/ymirge-linux
-          cp build/bin/ymirge-ui release/ymirge-linux/
-          cp -r shaders release/ymirge-linux/
-          cp -r assets release/ymirge-linux/
+          cp bin/ymirge release/ymirge-linux/
+          cp -r bin/shaders release/ymirge-linux/
+          cp -r bin/assets release/ymirge-linux/
           cp README.md LICENSE* release/ymirge-linux/ 2>/dev/null || true
           cd release && tar -czvf ymirge-linux-${{ github.ref_name }}.tar.gz ymirge-linux
 
@@ -46,27 +45,34 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-      - name: Setup MSVC
-        uses: microsoft/setup-msbuild@v2
+      - name: Setup Zig
+        uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.13.0
+
+      - name: Download SDL2
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/libsdl-org/SDL/releases/download/release-2.30.0/SDL2-devel-2.30.0-VC.zip" -OutFile SDL2.zip
+          Expand-Archive SDL2.zip -DestinationPath .
+          Move-Item SDL2-2.30.0 SDL2
 
       - name: Build
         run: |
-          mkdir build
-          cd build
-          cmake .. -G "Visual Studio 17 2022" -A x64
-          cmake --build . --config Release
+          $env:SDL2_PATH = "$PWD\SDL2"
+          zig build -p bin -Doptimize=ReleaseFast
 
       - name: Package
         shell: bash
         run: |
           mkdir -p release/ymirge-windows
-          cp build/bin/Release/ymirge-ui.exe release/ymirge-windows/
-          cp -r shaders release/ymirge-windows/
-          cp -r assets release/ymirge-windows/
+          cp bin/ymirge.exe release/ymirge-windows/
+          cp -r bin/shaders release/ymirge-windows/
+          cp -r bin/assets release/ymirge-windows/
           cp README.md release/ymirge-windows/ 2>/dev/null || true
-          # Copy SDL2 DLL
-          cp build/_deps/sdl2-src/lib/x64/SDL2.dll release/ymirge-windows/ 2>/dev/null || true
+          cp SDL2/lib/x64/SDL2.dll release/ymirge-windows/
           cd release && 7z a ymirge-windows-${{ github.ref_name }}.zip ymirge-windows
 
       - name: Upload artifact
