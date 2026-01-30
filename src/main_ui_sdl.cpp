@@ -514,6 +514,27 @@ public:
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 #endif
 
+        // HiDPI scaling - get scale factor from SDL
+        int windowW, windowH, drawableW, drawableH;
+        SDL_GetWindowSize(window_, &windowW, &windowH);
+        SDL_GL_GetDrawableSize(window_, &drawableW, &drawableH);
+        float dpiScale = (windowW > 0) ? static_cast<float>(drawableW) / static_cast<float>(windowW) : 1.0f;
+        if (dpiScale < 1.0f) dpiScale = 1.0f;
+
+        // Scale font for HiDPI
+        float fontSize = 15.0f * dpiScale;
+        io.Fonts->AddFontDefault();
+        ImFontConfig fontConfig;
+        fontConfig.SizePixels = fontSize;
+        fontConfig.OversampleH = 2;
+        fontConfig.OversampleV = 2;
+        io.Fonts->AddFontDefault(&fontConfig);
+        io.FontDefault = io.Fonts->Fonts.back();
+
+        // Scale style for HiDPI
+        ImGuiStyle& style = ImGui::GetStyle();
+        style.ScaleAllSizes(dpiScale);
+
         // Apply custom modern dark theme
         setupImGuiTheme();
 
