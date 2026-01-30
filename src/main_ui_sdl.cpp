@@ -338,9 +338,11 @@ void setupImGuiTheme() {
     colors[ImGuiCol_TabUnfocused]         = bg_dark;
     colors[ImGuiCol_TabUnfocusedActive]   = ImVec4(0.16f, 0.16f, 0.20f, 1.00f);
 
-    // Docking
+    // Docking (only available in imgui docking branch)
+#ifdef IMGUI_HAS_DOCK
     colors[ImGuiCol_DockingPreview]       = ImVec4(accent.x, accent.y, accent.z, 0.7f);
     colors[ImGuiCol_DockingEmptyBg]       = bg_dark;
+#endif
 
     // Text
     colors[ImGuiCol_Text]                 = text;
@@ -453,7 +455,7 @@ public:
         // Set window icon
         {
             int iconWidth, iconHeight, iconChannels;
-            unsigned char* iconData = stbi_load("assets/icon.png", &iconWidth, &iconHeight, &iconChannels, 4);
+            unsigned char* iconData = stbi_load("assets/logo.png", &iconWidth, &iconHeight, &iconChannels, 4);
             if (iconData) {
                 SDL_Surface* iconSurface = SDL_CreateRGBSurfaceFrom(
                     iconData,
@@ -472,7 +474,7 @@ public:
                 }
                 stbi_image_free(iconData);
             } else {
-                std::cerr << "Warning: Could not load window icon from assets/icon.png" << std::endl;
+                std::cerr << "Warning: Could not load window icon from assets/logo.png" << std::endl;
             }
         }
 
@@ -508,7 +510,9 @@ public:
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+#ifdef IMGUI_HAS_DOCK
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+#endif
 
         // Apply custom modern dark theme
         setupImGuiTheme();

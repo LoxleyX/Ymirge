@@ -369,7 +369,7 @@ void UIManagerImGui::renderControlPanel() {
                 selectedPreset_ = -1;
             }
             if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip("Elevation below which terrain gets smoothed.\n0.5 = bottom 50%, 0.7 = bottom 70%\nHigher values preserve more peaks.");
+                ImGui::SetTooltip("Elevation below which terrain gets smoothed.\n0.5 = bottom 50%%, 0.7 = bottom 70%%\nHigher values preserve more peaks.");
             }
         }
         if (ImGui::SliderFloat("Edge Padding", &params_.edgePadding, 0.0f, 0.5f)) {
@@ -735,7 +735,8 @@ void UIManagerImGui::renderLayerTreeNode(LayerBase* layer, size_t layerIndex, bo
             if (ImGui::MenuItem("Rename...")) {
                 showLayerRenameDialog_ = true;
                 renameLayerIndex_ = layerIndex;
-                strncpy_s(renameLayerBuffer_, sizeof(renameLayerBuffer_), terrainLayer->getName().c_str(), _TRUNCATE);
+                strncpy(renameLayerBuffer_, terrainLayer->getName().c_str(), sizeof(renameLayerBuffer_) - 1);
+                renameLayerBuffer_[sizeof(renameLayerBuffer_) - 1] = '\0';
             }
             if (isRootLevel && ImGui::MenuItem("Duplicate")) {
                 auto duplicate = layerStack_->duplicateLayer(layerIndex);
